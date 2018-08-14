@@ -40,7 +40,7 @@ def torneio(populacaoFitness):
 	contesterOne = random.randint(0, len(populacaoFitness)-1)
 	contesterTwo = random.randint(0, len(populacaoFitness)-1)
 	
-	if populacaoFitness[contesterOne][1]>=populacaoFitness[contesterTwo][1]:
+	if populacaoFitness[contesterOne][1]<=populacaoFitness[contesterTwo][1]:
 
 		return populacaoFitness[contesterOne]
 
@@ -56,14 +56,12 @@ def cruzamentoBlend(individuo1, individuo2):
 	for i in range(0, len(individuo1)):
 
 		aux = individuo1[i] - individuo2[i]
-		
 		if aux<0: aux * -1
 
 		dp.append(aux)
 
 	child = []
 	for i in range(0, len(individuo1)):
-
 		valor = random.uniform(min(individuo1[i],individuo2[i])-alfa*dp[i], max((individuo1[i],individuo2[i]))+alfa*dp[i])
 		child.append(valor)
 
@@ -81,22 +79,9 @@ def cruzamento(bestOnes, bestOthers, populacao):
 	j = 0
 	while(j<len(bestOnes)):
 
-		p1 = 0
-		p2 = 0
+		p1 = bestOnes[j][0]
+		p2 = bestOthers[j][0]
 
-		for i in range(0, len(bestOnes)):
-
-			if bestOnes[i][0] == i:
-
-				p1 = i
-
-			if bestOthers[i][0] == i:
-
-				p2 = i
-
-			if p1 != 0 and p2 != 0:
-
-				break
 
 		if flagFuncao == 0: ### cruzamento mediano
 
@@ -160,7 +145,6 @@ if __name__ == '__main__':
 	taxaMutacao = 0.01 #### é bom entre 1% e 15%
 	#### definindo os fitness da população
 	quantidadeGeracoes = 100
-	flag = 0
 	flagMelhor =  0
 	random.seed()
 
@@ -169,6 +153,7 @@ if __name__ == '__main__':
 
 		valorFitness = []
 		valorFitness = list(map(funcaoFinal, populacao))
+
 		populacaoFitness = []
 		
 
@@ -186,22 +171,13 @@ if __name__ == '__main__':
 			melhorAntigo = melhorValor
 			flagMelhor = 1
 		else:
-			print("f(x) ", melhorAntigo, " x ", melhorValor)
+			print(k , "f(x) ", melhorAntigo, " x ", melhorValor)
 			if melhorValor<melhorAntigo:
 				melhorElemento = populacao[p]
 				melhorAntigo = melhorValor
 			else:
 				melhorValor = melhorAntigo ### atualizando o valor
 
-		
-		if melhorValor > -0.5 and melhorValor < 0.5:
-			print("------------Melhores Elementos :")
-			print(melhorElemento)
-			print(melhorValor)
-			flag = 1
-			break
-	
-	
 
 		bestOnes = []
 
@@ -216,18 +192,13 @@ if __name__ == '__main__':
 			bestOthers.append(torneio(populacaoFitness))
 
 		populacao = cruzamento(bestOnes, bestOthers, populacao)
-
 		populacao.append(melhorElemento) ### adicionando o novo elemento de nossa população
 		
-
 		############# é hora de mutar
-		
 		populacao = mutacao(populacao, taxaMutacao)
 	
 
-	if flag!=1:
-		print("Não achamos um valor dentro dos limiares que queríamos :/")
-		print("O melhor valor foi: ", melhorValor)
+	print("O melhor valor foi: ", melhorValor)
 
 
 
