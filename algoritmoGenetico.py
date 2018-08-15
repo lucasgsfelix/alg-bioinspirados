@@ -3,6 +3,7 @@
 import math
 import random
 import numpy as np
+import matplotlib.pyplot as plt
 
 def funcaoUm(n):
 	y=0
@@ -75,7 +76,7 @@ def cruzamento(bestOnes, bestOthers, populacao):
 	childs = []
 
 
-	flagFuncao = 1
+	flagFuncao = 0
 	j = 0
 	while(j<len(bestOnes)):
 
@@ -147,7 +148,7 @@ if __name__ == '__main__':
 	quantidadeGeracoes = 100
 	flagMelhor =  0
 	random.seed()
-
+	melhores = []
 	for k in range(0, (quantidadeGeracoes)):
 
 
@@ -166,17 +167,19 @@ if __name__ == '__main__':
 
 		p, melhorValor = selecionaMelhorElemento(populacaoFitness)
 		melhorElemento = populacao[p]
+
 		if flagMelhor == 0:
 			melhorElemento = populacao[p]
 			melhorAntigo = melhorValor
 			flagMelhor = 1
 		else:
-			print(k , "f(x) ", melhorAntigo, " x ", melhorValor)
+			#print(k , "f(x) ", melhorAntigo, " x ", melhorValor)
 			if melhorValor<melhorAntigo:
 				melhorElemento = populacao[p]
 				melhorAntigo = melhorValor
 			else:
 				melhorValor = melhorAntigo ### atualizando o valor
+		melhores.append(melhorValor) ## meu x
 
 
 		bestOnes = []
@@ -199,6 +202,19 @@ if __name__ == '__main__':
 	
 
 	print("O melhor valor foi: ", melhorValor)
+
+	arq = open("saida.txt", 'w')
+	for i  in melhores:	
+		arq.write(str(i)+'\n')
+	arq.close()
+	### imprimindo os melhores
+	x = np.array(range(len(melhores))) ## fazendo o eixo x
+	plt.plot(x, melhores)
+	plt.title(" AG utilizando cruzamento Mediano ")
+	plt.grid(True) ### imprimindo as grades atrás
+	plt.xlabel("Gerações")
+	plt.ylabel("Fitness")
+	plt.show()
 
 
 
