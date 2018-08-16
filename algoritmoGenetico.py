@@ -4,6 +4,8 @@ import math
 import random
 import numpy as np
 import matplotlib.pyplot as plt
+import sys
+
 
 def funcaoUm(n):
 	y=0
@@ -70,13 +72,11 @@ def cruzamentoBlend(individuo1, individuo2):
 	return child
 
 
-def cruzamento(bestOnes, bestOthers, populacao):
+def cruzamento(bestOnes, bestOthers, populacao, flagFuncao):
 
 
 	childs = []
 
-
-	flagFuncao = 0
 	j = 0
 	while(j<len(bestOnes)):
 
@@ -121,6 +121,18 @@ def selecionaMelhorElemento(populacaoFitness):
 
 	return p, melhor
 
+def imprimeSaida(melhores, flagFuncao):
+
+	if flagFuncao == 0:
+		arq = open("mediano.txt", 'w')
+	else:
+		arq = open("bledAlfa.txt", 'w')
+
+		
+	for i  in melhores:	
+		arq.write(str(i)+'\n')
+	arq.close()
+
 def mutacao(populacao, taxaMutacao):
 
 	for i in range(0, len(populacao)):
@@ -137,6 +149,18 @@ def mutacao(populacao, taxaMutacao):
 
 	return populacao
 
+def imprimeGrafico(melhores, flagFuncao):
+
+	x = np.array(range(len(melhores))) ## fazendo o eixo x
+	plt.plot(x, melhores)
+	if flagFuncao == 0:
+		plt.title(" AG utilizando cruzamento Mediano ")
+	else:
+		plt.title("AG utilizando cruzamento BlendAlfa")
+	plt.grid(True) ### imprimindo as grades atrás
+	plt.xlabel("Gerações")
+	plt.ylabel("Fitness")
+	plt.show()
 
 
 
@@ -146,9 +170,21 @@ if __name__ == '__main__':
 	taxaMutacao = 0.01 #### é bom entre 1% e 15%
 	#### definindo os fitness da população
 	quantidadeGeracoes = 100
+	geracoesMelhores = 0
 	flagMelhor =  0
 	random.seed()
 	melhores = []
+	#flagFuncao = 0
+
+	### passando a função que quero usar por parametro
+	if len(sys.argv)>2:
+		flagFuncao = sys.argv[1]
+		nomeArqSaida = sys.argv[2]
+		flagFuncao = int(flagFuncao)
+	else:
+		flagFuncao =  1
+
+
 	for k in range(0, (quantidadeGeracoes)):
 
 
@@ -175,10 +211,14 @@ if __name__ == '__main__':
 		else:
 			#print(k , "f(x) ", melhorAntigo, " x ", melhorValor)
 			if melhorValor<melhorAntigo:
+				geracoesMelhores = 0
 				melhorElemento = populacao[p]
 				melhorAntigo = melhorValor
 			else:
 				melhorValor = melhorAntigo ### atualizando o valor
+				geracoesMelhores = geracoesMelhores + 1
+				if(geracoesMelhores==int(quantidadeGeracoes/10)):
+					taxaMutacao = 0.05 ### aumentando minha taxa de mutação caso eu haja uma convergência muito rápida
 		melhores.append(melhorValor) ## meu x
 
 
@@ -194,7 +234,7 @@ if __name__ == '__main__':
 
 			bestOthers.append(torneio(populacaoFitness))
 
-		populacao = cruzamento(bestOnes, bestOthers, populacao)
+		populacao = cruzamento(bestOnes, bestOthers, populacao, flagFuncao)
 		populacao.append(melhorElemento) ### adicionando o novo elemento de nossa população
 		
 		############# é hora de mutar
@@ -203,41 +243,10 @@ if __name__ == '__main__':
 
 	print("O melhor valor foi: ", melhorValor)
 
-	arq = open("saida.txt", 'w')
-	for i  in melhores:	
-		arq.write(str(i)+'\n')
-	arq.close()
-	### imprimindo os melhores
-	x = np.array(range(len(melhores))) ## fazendo o eixo x
-	plt.plot(x, melhores)
-	plt.title(" AG utilizando cruzamento Mediano ")
-	plt.grid(True) ### imprimindo as grades atrás
-	plt.xlabel("Gerações")
-	plt.ylabel("Fitness")
-	plt.show()
-
-
-
-
-
-
-
-
-
+	if len(sys.argv) > 2:
+		arq = open(nomeArqSaida, 'a')
+		arq.write(str(min(melhores))+'\n')
+		arq.close()
+	#imprimeSaida(melhores, flagFuncao) # imprime saída no arquivo
+	#imprimeGrafico(melhores) ### imprimindo os melhores
 	
-	
-
-
-
-
-	#while(funcaoFinal(n)!=0 or cont==5):
-
-
-
-
-
-
-
-
-
-

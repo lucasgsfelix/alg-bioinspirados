@@ -17,7 +17,7 @@ def leitura(arquivo):
 
 def grafica(x1, x2):
 
-	x = 10*np.array(range(len(x1)))
+	x = np.array(range(len(x1)))
 
 	#plt.plot( x, x1, 'go') # green bolinha
 	plt.plot( x, x1,color='red') # linha pontilha orange
@@ -39,6 +39,18 @@ def grafica(x1, x2):
 	plt.ylabel("Fitness")
 	plt.show()
 
+def imprimeGrafico(melhores, flagFuncao):
+
+	x = np.array(range(len(melhores))) ## fazendo o eixo x
+	plt.plot(x, melhores)
+	if flagFuncao == 0:
+		plt.title(" AG utilizando cruzamento Mediano ")
+	else:
+		plt.title("AG utilizando cruzamento BlendAlfa")
+	plt.grid(True) ### imprimindo as grades atrás
+	plt.xlabel("Gerações")
+	plt.ylabel("Fitness")
+	plt.show()
 
 
 
