@@ -3,7 +3,7 @@
 import math
 import random
 import numpy as np
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import sys
 
 
@@ -121,6 +121,25 @@ def selecionaMelhorElemento(populacaoFitness):
 
 	return p, melhor
 
+
+def selecaoPorRoleta(populacaoFitness):
+
+	porcaoSelecionada = random.uniform(0, 1)
+	porcaoSelecionada = 1/porcaoSelecionada
+	acumulador = 0
+	p = 0
+	flag = 0
+	for i in range(0, len(populacaoFitness)):
+		acumulador = (1/populacaoFitness[i][1]) + acumulador
+		if acumulador > porcaoSelecionada:
+			p = i
+			melhor = populacaoFitness[i][1]
+			flag = 1
+			break
+
+	return populacaoFitness[p]
+
+
 def imprimeSaida(melhores, flagFuncao):
 
 	if flagFuncao == 0:
@@ -224,15 +243,22 @@ if __name__ == '__main__':
 
 		bestOnes = []
 
+		selectionFlag = 0
 		for i in range(0, len(populacaoFitness)-1): #### escolhendo os melhores por torneio
 
-			bestOnes.append(torneio(populacaoFitness))
+			if selectionFlag == 0:
+				bestOnes.append(selecaoPorRoleta(populacaoFitness))
+			else:
+				bestOnes.append(torneio(populacaoFitness))
 
 		bestOthers = []
 
 		for i in range(0, len(populacaoFitness)-1): ### escolhendo os melhores por torneio
 
-			bestOthers.append(torneio(populacaoFitness))
+			if selectionFlag == 0:
+				bestOthers.append(selecaoPorRoleta(populacaoFitness))
+			else:
+				bestOthers.append(torneio(populacaoFitness))
 
 		populacao = cruzamento(bestOnes, bestOthers, populacao, flagFuncao)
 		populacao.append(melhorElemento) ### adicionando o novo elemento de nossa população
