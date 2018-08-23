@@ -122,18 +122,29 @@ def selecionaMelhorElemento(populacaoFitness):
 	return p, melhor
 
 
-def selecaoPorRoleta(populacaoFitness):
+def selecaoPorRoleta(populacaoFitness): ### calculando a roleta
+	somaTotal = 0
+	for i in range(0, len(populacaoFitness)):
+		somaTotal = somaTotal + (1/populacaoFitness[i][1])
+
+	proporcao = []
+	for i in range(0, len(populacaoFitness)):
+		proporcao.append(((1/populacaoFitness[i][1])/somaTotal))
+	
+
+
+	for i in range(0, len(populacaoFitness)):
+		print(proporcao[i], populacaoFitness[i][1])
 
 	porcaoSelecionada = random.uniform(0, 1)
-	porcaoSelecionada = 1/porcaoSelecionada
 	acumulador = 0
+
 	p = 0
 	flag = 0
 	for i in range(0, len(populacaoFitness)):
-		acumulador = (1/populacaoFitness[i][1]) + acumulador
-		if acumulador > porcaoSelecionada:
+		acumulador = (1/populacaoFitness[i][1]) + acumulador ## sobre a soma do fitness de todos
+		if acumulador >= porcaoSelecionada:
 			p = i
-			melhor = populacaoFitness[i][1]
 			flag = 1
 			break
 
