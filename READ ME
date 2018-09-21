@@ -1,0 +1,13 @@
+Em duplas ou trios, façam uma implementação de um algoritmo de evolução diferencial que solucione o problema da mochila binária.
+
+O seu programa deve receber como entrada uma instância do problema com a seguinte característica:
+
+-Capacidade da mochila
+
+- Lista itens:
+
+id_item, utilidade_item, peso_item
+
+E deve retornar o id dos itens da melhor solução e o peso da mehor solução.
+
+Apresente um gráfico com a curva de mehora do algoritmo através das gerações.

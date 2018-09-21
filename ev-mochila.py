@@ -1,5 +1,7 @@
+### desenvolvido por lucas félix
 import random
-
+import numpy as np
+import matplotlib.pyplot as plt
 def geraPopulacao(quantIndividuos, utilidade):
 
 	populacao = []
@@ -136,6 +138,15 @@ def verificaPune(fit, populacao, capacidade, peso, utilidade):
 
 	return fit
 
+def imprimeGrafico(melhores):
+
+	x = np.array(range(len(melhores))) ## fazendo o eixo x
+	plt.plot(x, melhores)
+	plt.title("ED para o problema da mochila")
+	plt.grid(True) ### imprimindo as grades atrás
+	plt.xlabel("Gerações")
+	plt.ylabel("Fitness")
+	plt.show()
 
 
 if __name__ == '__main__':
@@ -150,6 +161,7 @@ if __name__ == '__main__':
 	populacao = geraPopulacao(100, utilidade)
 
 	melhores = []
+	idMelhores = []
 	for k in range(0, quantGeracoes):
 
 		popInterMed = mutacaoIntermediaria(populacao, fatorPertubacao, utilidade)
@@ -187,10 +199,16 @@ if __name__ == '__main__':
 
 		if max(fitFilho)>max(fitPai):
 			melhores.append(max(fitFilho))
+			idMelhores.append(filhos[fitFilho.index(max(fitFilho))]) ## retorna o index do melhor valor
 		else:
 			melhores.append(max(fitPai))
+			idMelhores.append(populacao[fitPai.index(max(fitPai))])
 
-	print(melhores)
+
+	print("O melhor fit é: ", max(melhores))
+	print("Os itens do melhor são: ", idMelhores[melhores.index(max(melhores))])
+	imprimeGrafico(melhores)
+
 
 
 
