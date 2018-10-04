@@ -1,17 +1,57 @@
-import random
 from igraph import *
+import random
+import copy
+def populacaoFormigas(grafo, quant):
 
-alfa = 0.08
-beta = 0.05
-def definePop(numberOfIndividuals, graph):
-	
-	ants = []
-	for i in range(0, numberOfIndividuals):
-		ants.append(graph.vs[random.randint(0, graph.vcount()-1)]['id']) ### adicionei o id dos vértices
-	
-	return ants # in this method we will return the vertex of each ant
+	pop = []
+	for i in range(0, quant):
+		formiga = []
+		formiga.append(random.randint(0, (grafo.vcount())-1)) ## definindo o vértice inicial, esse é o index dele
+		pop.append(formiga)
 
-def fitness(k):
+	return pop
+
+def calculaIndexAresta(i, j):
+
+
+	try:
+		return grafo.get_eids(pairs = [ (i, j) ])
+	except:
+		return []
+
+def fazCalculo(formiga, matriz, i, matrizProbabilidade):
+
+	for j in range(0, (grafo.vcount())):
+
+		k = calculaIndexAresta(i, j)
+		#print(k)
+		if len(k) != 0:
+			eq1 = (matriz[i][j] ** alfa) * ((1/grafo.es['weight'][k[0]])**beta)
+			eq2 = calculoGlobal(matriz, i)
+			matrizProbabilidade[i][j] = eq1/eq2
+		else:
+			matrizProbabilidade[i][j] = 0
+
+
+	return matrizProbabilidade
+
+
+
+def calculoGlobal(matriz, i):
+
+	soma = 0
+	for j in range(0, len(matriz[i])):
+
+		k = calculaIndexAresta(i, j)
+		if len(k) != 0:
+			soma = (matriz[i][j] ** alfa)*((1/grafo.es['weight'][k[0]]**beta)) + soma
+		else:
+			soma = soma + 0
+
+	return soma
+
+def funcaoObjetivo(grafo, individuo):
+
 	somaDistancias = 0
 	i=0
 	while(i<len(individuo)-1):
@@ -35,74 +75,24 @@ def fitness(k):
 
 	return somaDistancias
 
-def calculateJk(graph, kVisited): ## give the graph and k been k a vertex, this function will calculate the list of vertex not visited yet
+
+if __name__ == '__main__':
 	
-	notVisited = []
-	for i in graph.vs():
-		if not i in kVisited: 
-			notVisited.append(i)
-	return notVisited
+	grafo = Graph.Read_GraphML("grafo.gml")
+	matriz = list(grafo.get_adjacency(type = GET_ADJACENCY_BOTH, eids = False)) ## vai ser minha matriz de feromonios
+	pop = populacaoFormigas(grafo, 10)
+	numeroIteracoes = 100
+	matrizProbabilidade = copy.copy(list(matriz))
+	alfa = 0.7
+	beta = 1-alfa
 
-def defineAntsGenes(graph, pop):
-	completePop = []
-	index = 0
-	for j in range(0, len(pop)):
-		individual = []
-		individual.append(j) ## id
-		for k in range(0, len(graph.vs['id'])):
-			if graph.vs['id'][k] == pop[j]: ## will get the index of the vertex
-				index = k 
-				break
+	for i in range(0, numeroIteracoes):
 
-		edgesId = []
-		flag = 0 ## this flag will avoid the loop to go all the way
-	
-		for k in range(0, len(graph.get_edgelist())): ### will get the id of the edges
-			
+		for k in range(0, len(pop)):
 
-			if index in graph.get_edgelist()[k]:
-				edgesId.append(k) ## k is the index of the edge
-				flag = 1
-				
-		individual.append( [1] * graph.degree(index, mode = OUT, loops = True)) ### tij --> matrix of feromonios		
-		individual.append(edgesId) ### id of all egdes
-		individual.append([]) ### visited vertex
-		completePop.append(individual)
+			fazCalculo(pop[k], matriz, k, matrizProbabilidade)
+			### qual a fórmula para atualização da matriz de feromonios
+			## agora eu tenho que decidir para onde eu vou
 
-	return completePop
+		
 
-def buildSolution(graph, k): ## this method will be responsible for build the solution calculating Pij
-	
-
-	### in the index = 1 theres is the genes
-	tijGlobal = calculateTijGlobal(graph, 1)
-	pij = []
-
-	for i in range(0, len(k[1])):
-		pij.append(((k[1][i] ** alfa) * ( graph.es['weight'][k[2][i]] ** beta ))/(tijGlobal))
-
-
-
-def calculateTijGlobal(graph, tijGlobal):
-
-	if tijGlobal == 1:
-		soma = 0
-		for i in range(0, graph.ecount()):
-			soma = (tijGlobal**alfa)*(graph.es['weight'][i]**beta) + soma
-	else:
-		pass
-
-	return soma
-
-if __name__ == "__main__":
-	
-	random.seed()
-	graph = Graph.Read_GraphML("grafo.gml") ## will read the graph file
-	numberOfGenerations = 100
-	pop = definePop(100, graph)
-	pop = defineAntsGenes(graph, pop) 
-	
-
-	for k in range(0, numberOfGenerations):
-		for ant in pop:
-			buildSolution(graph, ant)
