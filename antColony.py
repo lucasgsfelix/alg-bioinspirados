@@ -1,25 +1,27 @@
 from igraph import *
 import random
 import copy
+import random
 def populacaoFormigas(grafo, quant):
 
 	pop = []
 	for i in range(0, quant):
 		formiga = []
 		formiga.append(random.randint(0, (grafo.vcount())-1)) ## definindo o vértice inicial, esse é o index dele
-		pop.append(formiga)
+		formiga.append([])
+		pop.append(formiga) ## primeira posição é onde ela começa
+
 
 	return pop
 
 def calculaIndexAresta(i, j):
-
 
 	try:
 		return grafo.get_eids(pairs = [ (i, j) ])
 	except:
 		return []
 
-def fazCalculo(formiga, matriz, i, matrizProbabilidade):
+def fazCalculo(matriz, i, matrizProbabilidade):
 
 	for j in range(0, (grafo.vcount())):
 
@@ -32,8 +34,7 @@ def fazCalculo(formiga, matriz, i, matrizProbabilidade):
 		else:
 			matrizProbabilidade[i][j] = 0
 
-
-	return matrizProbabilidade
+	#return matrizProbabilidade
 
 
 
@@ -76,8 +77,45 @@ def funcaoObjetivo(grafo, individuo):
 	return somaDistancias
 
 
+def roleta(posicaoInicial, visitados, probabilidades): ### dada uma formiga eu tenho a posição inicial dele e os vértices que ele já visitou
+### probabilidades é dada pelas probabilidades dos vértices
+	somaTotal = 0
+	for i in range(0, len(probabilidades)):
+		if not i in visitados:
+			somaTotal =  probabilidades[i] + somaTotal ### soma total da nossa roleta
+
+	if somaTotal == 0:
+		return -1
+
+	proporcao = []
+	for i in range(0, len(probabilidades)):
+
+		if not i in visitados:
+			proporcao.append(probabilidades[i]/somaTotal) ### proporção de cada um dos vértices
+		else:
+			proporcao.append(0)
+
+	acumulador = 0
+	escolhido = random.uniform(0, 1)
+	for i in range(0, len(proporcao)):
+		acumulador = proporcao[i] + acumulador
+		if acumulador >= escolhido:
+			return i ### i irá ser o vértice selecionado
+
+def calculoFitness(caminho, grafo):
+
+	soma = 0
+	for i in range(1, len(caminho)):
+		idVertice = grafo.get_eids(pairs = [ (caminho[i-1], caminho[i]) ])
+		for j in idVertice:
+			soma = grafo.es[j]['weight'] + soma
+			break
+
+	return soma
+
 if __name__ == '__main__':
 	
+	random.seed()
 	grafo = Graph.Read_GraphML("grafo.gml")
 	matriz = list(grafo.get_adjacency(type = GET_ADJACENCY_BOTH, eids = False)) ## vai ser minha matriz de feromonios
 	pop = populacaoFormigas(grafo, 10)
@@ -85,14 +123,39 @@ if __name__ == '__main__':
 	matrizProbabilidade = copy.copy(list(matriz))
 	alfa = 0.7
 	beta = 1-alfa
-
+	melhores = []
+	caminhosMelhores = []
 	for i in range(0, numeroIteracoes):
 
+		matrizProbabilidade = list(grafo.get_adjacency(type = GET_ADJACENCY_BOTH, eids = False))
+
+		for j in range(0, grafo.vcount()):
+
+			for k in range(0, len(matrizProbabilidade)):
+				fazCalculo(matriz, k, matrizProbabilidade) ### calcula a matriz de probabilidades
+
+			#### agora tenho que fazer a formiga decidir para onde ela irá
+			for k in range(0, len(pop)):
+				### uma formiga em um vértice i irá para um vértice j de acordo com a probabilidade da roleta
+				novaP = roleta(pop[k][0], pop[k][1], matrizProbabilidade[pop[k][0]])
+				if novaP == -1: break
+				pop[k][1].append(pop[k][0]) ### adicionando o novo vértice como visitado
+				pop[k][0] = novaP ## recebendo a nova posição da formiga
+
+		fitness = []
 		for k in range(0, len(pop)):
 
-			fazCalculo(pop[k], matriz, k, matrizProbabilidade)
-			### qual a fórmula para atualização da matriz de feromonios
-			## agora eu tenho que decidir para onde eu vou
+			fitness.append(calculoFitness(pop[k][1], grafo))
+
+		melhores.append(max(fitness))
+		caminhosMelhores.append(pop[fitness.index(max(fitness))][1])
+
+	print(max(melhores))
+	print(caminhosMelhores[melhores.index(max(melhores))])
+
+
+
+
 
 		
 
