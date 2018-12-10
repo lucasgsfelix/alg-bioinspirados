@@ -1,6 +1,14 @@
-contador=0
-while [ $contador -lt 100 ]; do 
-	python algoritmoGenetico.py 1 saida1.txt
-	let contador=contador+1;
-
+numSeeds=2
+while [ $numSeeds -lt 6 ]; do
+	contador=0
+	echo "Este é o numero de seed ", $numSeeds
+	while [ $contador -lt 10 ]; do 
+		python algoritmoGenetico.py $numSeeds
+		let contador=contador+1;
+	done
+	echo "Agora está sendo realizada as estatísticas para ", $numSeeds
+	python estatisticas.py
+	rm saida.txt
+	>> saida.txt
+	let numSeeds=numSeeds+1;
 done

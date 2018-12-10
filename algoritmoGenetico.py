@@ -1,289 +1,183 @@
-#### aula 09/08 - algoritmo genetico
-
-import math
+from igraph import *
 import random
+import bio_troy
 import numpy as np
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 import sys
 
+def definePopulacao(vertices, numIndividuos, tamanhoIndividuo):
 
-def funcaoUm(n):
-	y=0
-	for i in n:
-		y = i*i+y
-
-	fx = -0.2*math.sqrt(1.0/2*y)
-
-	return fx
-
-def funcaoDois(n):
-
-	y=0
-	for i in n:
-		y = math.cos(2*math.pi*i)+y
-
-	fx = float(1.0/(len(n)))*y
-
-	return fx
-
-def funcaoFinal(n): ### definindo a função final
-	fx = -20*math.exp(funcaoUm(n)) - math.exp(funcaoDois(n)) + 20 + math.exp(1)  
-	return fx
-
-def defineIndividuos():
+	''' Define os vértices que serão os individuos '''
 	populacao = []
-	for i in range(0, 100):
-		aux = list(np.random.uniform(low =-.5, high=.5, size=(5,)))
-		populacao.append(aux)
-
-	return populacao
-
-def torneio(populacaoFitness):
-
-	contesterOne = random.randint(0, len(populacaoFitness)-1)
-	contesterTwo = random.randint(0, len(populacaoFitness)-1)
-	
-	if populacaoFitness[contesterOne][1]<=populacaoFitness[contesterTwo][1]:
-
-		return populacaoFitness[contesterOne]
-
-	else:
-
-		return populacaoFitness[contesterTwo]
-
-def cruzamentoBlend(individuo1, individuo2):
-
-	alfa = 0.8
-	dp = []
-	aux = 0
-	for i in range(0, len(individuo1)):
-
-		aux = individuo1[i] - individuo2[i]
-		if aux<0: aux * -1
-
-		dp.append(aux)
-
-	child = []
-	for i in range(0, len(individuo1)):
-		valor = random.uniform(min(individuo1[i],individuo2[i])-alfa*dp[i], max((individuo1[i],individuo2[i]))+alfa*dp[i])
-		child.append(valor)
-
-
-	return child
-
-
-def cruzamento(bestOnes, bestOthers, populacao, flagFuncao):
-
-
-	childs = []
-
-	j = 0
-	while(j<len(bestOnes)):
-
-		p1 = bestOnes[j][0]
-		p2 = bestOthers[j][0]
-
-
-		if flagFuncao == 0: ### cruzamento mediano
-
-			childs.append(cruzamentoMedio(populacao[p1], populacao[p2]))
-
-		else: ## cruzamento blend alfa
-
-			childs.append(cruzamentoBlend(populacao[p1], populacao[p2]))
-
-		j=j+1
-
-	return childs
-
-
-def cruzamentoMedio(individuo1, individuo2):
-
-	child = []
-	for i in range(0, len(individuo1)):
-		child.append(float((individuo1[i]+individuo2[i])/2))
-
-	return child
-
-
-def selecionaMelhorElemento(populacaoFitness):
-
-	melhor = populacaoFitness[0][1]
-	p = 0
-
-	for i in range(0, len(populacaoFitness)):
-
-		if populacaoFitness[i][1] < melhor:
-
-			melhor = populacaoFitness[i][1]
-			p = i
-
-
-	return p, melhor
-
-
-def selecaoPorRoleta(populacaoFitness): ### calculando a roleta
-	somaTotal = 0
-	for i in range(0, len(populacaoFitness)):
-		somaTotal = somaTotal + (1/populacaoFitness[i][1])
-
-	proporcao = []
-	for i in range(0, len(populacaoFitness)):
-		proporcao.append(((1/populacaoFitness[i][1])/somaTotal))
-	
-
-
-	for i in range(0, len(populacaoFitness)):
-		print(proporcao[i], populacaoFitness[i][1])
-
-	porcaoSelecionada = random.uniform(0, 1)
-	acumulador = 0
-
-	p = 0
-	flag = 0
-	for i in range(0, len(populacaoFitness)):
-		acumulador = (1/populacaoFitness[i][1]) + acumulador ## sobre a soma do fitness de todos
-		if acumulador >= porcaoSelecionada:
-			p = i
-			flag = 1
-			break
-
-	return populacaoFitness[p]
-
-
-def imprimeSaida(melhores, flagFuncao):
-
-	if flagFuncao == 0:
-		arq = open("mediano.txt", 'w')
-	else:
-		arq = open("bledAlfa.txt", 'w')
+	for i in range(0, numIndividuos):
+		if tamanhoIndividuo == 0:
+			tamanhoIndividuo = random.randint(1, len(vertices)-1)
+		else:
+			if tamanhoIndividuo>len(vertices)-1:
+				print("O tamanho do individuo não pode ser maior que o número de vértices !")
+				exit()
 
 		
-	for i  in melhores:	
-		arq.write(str(i)+'\n')
-	arq.close()
+		j=0
+		individuo = []
+		while(j<(tamanhoIndividuo)):
+			gene = random.randint(0, len(vertices)-1)
+			if not gene in individuo:
+				individuo.append(gene)
+				j=j+1
 
-def mutacao(populacao, taxaMutacao):
-
-	for i in range(0, len(populacao)):
-
-		for j in range(0, len(populacao[i])):
-			
-			
-			x = random.uniform(0, 1)
-
-			if x <= taxaMutacao: ### vou fazer a mutação
-
-				novoGene = random.uniform(-5, 5)
-				populacao[i][j] = novoGene
+		populacao.append(individuo)
 
 	return populacao
 
-def imprimeGrafico(melhores, flagFuncao):
 
-	x = np.array(range(len(melhores))) ## fazendo o eixo x
-	plt.plot(x, melhores)
-	if flagFuncao == 0:
-		plt.title(" AG utilizando cruzamento Mediano ")
-	else:
-		plt.title("AG utilizando cruzamento BlendAlfa")
-	plt.grid(True) ### imprimindo as grades atrás
+def selecaoTorneio(fit, melhoresComunidades):
+
+	novaPopulacao = []
+	for i in range(0, len(melhoresComunidades)):
+		
+		competidorUm = random.randint(0, len(melhoresComunidades)-1)
+		competidorDois = random.randint(0, len(melhoresComunidades)-1)
+
+		if fit[competidorDois] >= fit[competidorUm]:
+			novaPopulacao.append(melhoresComunidades[competidorDois])
+		else:
+			novaPopulacao.append(melhoresComunidades[competidorUm])
+
+	return novaPopulacao
+
+def cruzamentoCorte(paiUm, paiDois):
+
+
+	pInicial = int(len(paiUm)/3)
+	meioUm = paiUm[pInicial:pInicial*2] ### coloquei metade um  meio do filho 1
+	meioDois = paiDois[pInicial:pInicial*2]
+
+	filhoUm = []
+	filhoDois = []
+	for i in meioUm: filhoUm.append(i)
+	for i in meioDois: filhoDois.append(i)
+
+	for i in paiDois:
+		if not i in filhoUm:
+			filhoUm.append(i)
+	for i in paiUm:
+		if not i in filhoDois:
+			filhoDois.append(i)
+
+	return filhoUm, filhoDois
+
+
+def mutacao(taxaMutacao, individuo, grafo):
+
+
+	x = random.uniform(0, 1)
+
+	if x <= taxaMutacao:
+
+		if len(individuo)>1:
+			x = random.randint(1, len(individuo)-1)
+			
+			i=0
+			while(i<x):
+				
+				vertice = random.randint(0, grafo.vcount()-1)
+				if not vertice in individuo:
+					individuo[random.randint(0, len(individuo)-1)] = vertice
+					i=i+1
+
+
+	return individuo
+
+def grafica(x1):
+
+	x = np.array(range(len(x1)))
+
+	#plt.plot( x, x1, 'go') # green bolinha
+	plt.plot( x, x1,color='red') # linha pontilha orange
+
+	#plt.plot( x, x2, 'r^') # red triangul
+
+	#plt.axis([-10, 60, 0, 11])
+	plt.title("Algoritmo DCS")
+
+
+	plt.grid(True)
 	plt.xlabel("Gerações")
 	plt.ylabel("Fitness")
 	plt.show()
 
 
-
 if __name__ == '__main__':
 	
-	populacao = defineIndividuos()
-	taxaMutacao = 0.01 #### é bom entre 1% e 15%
-	#### definindo os fitness da população
-	quantidadeGeracoes = 100
-	geracoesMelhores = 0
-	flagMelhor =  0
 	random.seed()
-	melhores = []
-	#flagFuncao = 0
+	print("Número de seed -->", sys.argv[1] )
+	grafo = Graph.Read_GML("REDE/karate.gml") ### lendo o grafo no formato gml
+	populacao = definePopulacao(grafo.vs['id'], 100, int(sys.argv[1]))
+	numGeracoes = 100
+	melhorAtual = 0
+	melhoresComunidades = []
+	melhoresFitness = []
+	taxaMutacao = 0.01
+	for k in range(0, numGeracoes):
 
-	### passando a função que quero usar por parametro
-	if len(sys.argv)>2:
-		flagFuncao = sys.argv[1]
-		nomeArqSaida = sys.argv[2]
-		flagFuncao = int(flagFuncao)
-	else:
-		flagFuncao =  1
-
-
-	for k in range(0, (quantidadeGeracoes)):
-
-
-		valorFitness = []
-		valorFitness = list(map(funcaoFinal, populacao))
-
-		populacaoFitness = []
+		fit = []
+		for i in range(0, len(populacao)):
+			fit.append(bio_troy.fitness(grafo, populacao[i]))
 		
+		if max(fit) > melhorAtual: ## atualizo o melhor elemento
+			
+			melhorAtual = max(fit)
+			melhoresComunidades.append(populacao[fit.index(max(fit))])
+		else: ### caso não seja melhor
 
-		for i in range(0, len(valorFitness)):
-			aux = []
-			aux.append(i) ### id 
-			aux.append(valorFitness[i]) #valorFitness
-			populacaoFitness.append(aux)
+			melhoresComunidades.append(populacao[fit.index(max(fit))])
+
+		melhoresFitness.append(max(fit))
+
+		## seleção
+
+		fit, populacao = (list(x) for x in zip(*sorted(zip(fit, populacao), reverse=False)))
+		selecionados = selecaoTorneio(fit, populacao)
+
+		## cruzamento
+		populacao = []
+		for i in range(0, len(selecionados)-1, 2):
+			filhoUm, filhoDois = cruzamentoCorte(selecionados[i], selecionados[i+1])
+			populacao.append(filhoUm)
+			populacao.append(filhoDois)
 		
+		populacao.pop(len(populacao)-1)
+		populacao.append(melhoresComunidades[len(melhoresComunidades)-1])
 
-		p, melhorValor = selecionaMelhorElemento(populacaoFitness)
-		melhorElemento = populacao[p]
-
-		if flagMelhor == 0:
-			melhorElemento = populacao[p]
-			melhorAntigo = melhorValor
-			flagMelhor = 1
-		else:
-			#print(k , "f(x) ", melhorAntigo, " x ", melhorValor)
-			if melhorValor<melhorAntigo:
-				geracoesMelhores = 0
-				melhorElemento = populacao[p]
-				melhorAntigo = melhorValor
-			else:
-				melhorValor = melhorAntigo ### atualizando o valor
-				geracoesMelhores = geracoesMelhores + 1
-				if(geracoesMelhores==int(quantidadeGeracoes/10)):
-					taxaMutacao = 0.05 ### aumentando minha taxa de mutação caso eu haja uma convergência muito rápida
-		melhores.append(melhorValor) ## meu x
+		## mutação
+		for i in range(0, len(populacao)):
+			populacao[i] = mutacao(taxaMutacao, populacao[i], grafo)
 
 
-		bestOnes = []
 
-		selectionFlag = 0
-		for i in range(0, len(populacaoFitness)-1): #### escolhendo os melhores por torneio
+	#print(max(melhoresFitness))
+	bestSeeds = melhoresComunidades[melhoresFitness.index(max(melhoresFitness))]
+	comunidades = []
+	for i in bestSeeds:
+		comunidades.append(bio_troy.expansaoDeVertices(i, grafo))
 
-			if selectionFlag == 0:
-				bestOnes.append(selecaoPorRoleta(populacaoFitness))
-			else:
-				bestOnes.append(torneio(populacaoFitness))
+	#comunidades = set(comunidades)
+	results = set(x for l in comunidades for x in l)
 
-		bestOthers = []
 
-		for i in range(0, len(populacaoFitness)-1): ### escolhendo os melhores por torneio
+	'''print("------- Relatório-------")
+	print("Vértices Iniciais ", bestSeeds)
+	print("Comunidade Gerada ", comunidades)
+	print("Indice de cobertura da Rede ", (len(list(results)))/grafo.vcount())
+	print("Modularidade ", max(melhoresFitness))'''
+	print(bestSeeds)
+	arq = open("saida.txt", 'a')
 
-			if selectionFlag == 0:
-				bestOthers.append(selecaoPorRoleta(populacaoFitness))
-			else:
-				bestOthers.append(torneio(populacaoFitness))
+	### aqui estou imprimindo em arquivo para realizar testes
+	### Estou imprimindo a quantidade de sementes, indice de cobertura, melhor fitness
+	arq.write(str(len(bestSeeds))+'\t'+str((len(list(results)))/grafo.vcount())+'\t'+str(max(melhoresFitness))+'\n')
 
-		populacao = cruzamento(bestOnes, bestOthers, populacao, flagFuncao)
-		populacao.append(melhorElemento) ### adicionando o novo elemento de nossa população
-		
-		############# é hora de mutar
-		populacao = mutacao(populacao, taxaMutacao)
 	
-
-	print("O melhor valor foi: ", melhorValor)
-
-	if len(sys.argv) > 2:
-		arq = open(nomeArqSaida, 'a')
-		arq.write(str(min(melhores))+'\n')
-		arq.close()
-	#imprimeSaida(melhores, flagFuncao) # imprime saída no arquivo
-	#imprimeGrafico(melhores) ### imprimindo os melhores
+	#grafica(melhoresFitness)
 	

@@ -7,18 +7,45 @@ def leitura(arquivo):
 	arq.close()
 	info = info.split('\n')
 
-	if (info[len(info)-1]==''):
-		info.pop(len(info)-1)
+	nSeeds, iCobertura, fit = [], [], []
 	for i in range(0, len(info)):
-		info[i] = float(info[i])
+		info[i] = info[i].split('\t')
+		if (info[i][0]=='' or info[i][0]==' '):
+			break
 
-	return info
+		nSeeds.append(float(info[i][0]))
+		iCobertura.append(float(info[i][1]))
+		fit.append(float(info[i][2]))
+	
 
 
+	return nSeeds, iCobertura, fit
 
-info = leitura("saida1.txt")
+def estatisticas(info, flag):
 
-media = statistics.mean(info)
-dp = statistics.stdev(info)
-print("Média ", media)
-print("Desvio padrão ", dp)
+	estatisticas = []
+	estatisticas.extend([statistics.mean(info), max(info), min(info), statistics.stdev(info)])
+
+	'''print("Melhor ", min(info))
+	print("Pior ", max(info))
+	print("Média ", statistics.mean(info))
+	print("Desvio padrão ", statistics.stdev(info))'''
+	string = ''
+	for i in range(0, len(estatisticas)):
+		string =   string+ '&' +"$"+str(round(estatisticas[i], 2))+"$"
+
+	if flag == 0:
+		string = string + "\\\\ \\hline"
+	else:
+		string = string + "\\\\ \\cline{2-5}"
+
+	string = string + '\n'
+
+	return string
+
+
+nSeeds, iCobertura, fit = leitura("saida.txt")
+arq = open("tabelaLatex.txt", 'a')
+arq.write(estatisticas(info, 1)+estatisticas(iCobertura, 1) + estatisticas(fit, 0))
+
+
