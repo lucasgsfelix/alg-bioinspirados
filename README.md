@@ -1,2 +1,2 @@
-# alg-bioinspirados
-Repositório para os exercícios de algoritmos bio inspirados
+# bio-troy
+Algoritmo bio-inspirado para detecção de comunidades com sobreposição 
